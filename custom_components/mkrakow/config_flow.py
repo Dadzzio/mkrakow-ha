@@ -1,0 +1,110 @@
+"""Konfiguracja w UI: PESEL + hasło → kod SMS → zapis sesji (hasło nie jest zapisywane)."""
+
+from __future__ import annotations
+
+import time
+from collections.abc import Mapping
+from typing import Any
+
+import voluptuous as vol
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.helpers.selector import (
+    TextSelector,
+    TextSelectorConfig,
+    TextSelectorType,
+)
+
+from .api import MKrakowApi, MKrakowBlad, MKrakowBladLogowania, nowe_app_id
+from .const import (
+    CONF_APIKEY,
+    CONF_APP_ID,
+    CONF_AUTH_KLIENT,
+    CONF_AUTH_SMS,
+    CONF_HASLO,
+    CONF_KOD_SMS,
+    CONF_PESEL,
+    CONF_TOKENY,
+    DOMAIN,
+)
+from .coordinator import utworz_api
+
+HASLO = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+
+SCHEMAT_USER = vol.Schema(
+    {
+        vol.Required(CONF_PESEL): str,
+        vol.Required(CONF_HASLO): HASLO,
+        vol.Required(CONF_APIKEY): HASLO,
+        vol.Required(CONF_AUTH_SMS): HASLO,
+        vol.Required(CONF_AUTH_KLIENT): HASLO,
+    }
+)
+SCHEMAT_SMS = vol.Schema({vol.Required(CONF_KOD_SMS): str})
+
+
+class MKrakowConfigFlow(ConfigFlow, domain=DOMAIN):
+    VERSION = 1
+
+    def __init__(self) -> None:
+        self._dane: dict[str, Any] = {}
+        self._stan: dict[str, str] | None = None
+        self._api: MKrakowApi | None = None
+
+    async def _wyslij_sms(self, haslo: str) -> dict[str, str]:
+        self._api = utworz_api(self.hass, self._dane)
+        try:
+            self._stan = await self._api.zaloguj(self._dane[CONF_PESEL], haslo)
+        except MKrakowBladLogowania:
+            return {"base": "invalid_auth"}
+        except MKrakowBlad:
+            return {"base": "cannot_connect"}
+        return {}
+
+    async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        bledy: dict[str, str] = {}
+        if user_input is not None:
+            haslo = user_input.pop(CONF_HASLO)
+            self._dane = {**user_input, CONF_APP_ID: nowe_app_id()}
+            bledy = await self._wyslij_sms(haslo)
+            if not bledy:
+                return await self.async_step_sms()
+        return self.async_show_form(step_id="user", data_schema=SCHEMAT_USER, errors=bledy)
+
+    async def async_step_sms(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        bledy: dict[str, str] = {}
+        if user_input is not None and self._api and self._stan:
+            try:
+                tokeny = await self._api.potwierdz_sms(self._stan, user_input[CONF_KOD_SMS])
+                ja = await self._api.uzytkownik(tokeny["access_token"])
+            except MKrakowBladLogowania:
+                bledy = {"base": "invalid_code"}
+            except MKrakowBlad:
+                bledy = {"base": "cannot_connect"}
+            else:
+                tokeny["zalogowano"] = time.time()
+                dane = {**self._dane, CONF_TOKENY: tokeny}
+                if self.source == "reauth":
+                    return self.async_update_reload_and_abort(self._get_reauth_entry(), data=dane)
+                await self.async_set_unique_id(str(ja.get("sub") or self._dane[CONF_PESEL]))
+                self._abort_if_unique_id_configured()
+                imie = ja.get("given_name") or "konto"
+                return self.async_create_entry(title=f"mKraków ({imie})", data=dane)
+        return self.async_show_form(step_id="sms", data_schema=SCHEMAT_SMS, errors=bledy)
+
+    async def async_step_reauth(self, entry_data: Mapping[str, Any]) -> ConfigFlowResult:
+        self._dane = {k: v for k, v in entry_data.items() if k != CONF_TOKENY}
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        bledy: dict[str, str] = {}
+        if user_input is not None:
+            bledy = await self._wyslij_sms(user_input[CONF_HASLO])
+            if not bledy:
+                return await self.async_step_sms()
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_HASLO): HASLO}),
+            errors=bledy,
+        )

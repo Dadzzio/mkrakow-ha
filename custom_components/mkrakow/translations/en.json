@@ -1,0 +1,53 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "mKraków login",
+        "description": "Same credentials as in the mKraków app. The password is only used to send the SMS and is not stored. The last three fields are app constants – copy them from a Proxyman capture (see README).",
+        "data": {
+          "pesel": "PESEL",
+          "haslo": "Password",
+          "apikey": "apikey header",
+          "auth_sms": "Authorization from /mkrakow-sms/login",
+          "auth_klient": "Authorization from /mkrakow-oauth/token"
+        }
+      },
+      "sms": {
+        "title": "SMS code",
+        "description": "Enter the code from the SMS you just received.",
+        "data": {
+          "kod_sms": "SMS code"
+        }
+      },
+      "reauth_confirm": {
+        "title": "mKraków session expired",
+        "description": "Enter your password – a new SMS code will be sent.",
+        "data": {
+          "haslo": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Wrong PESEL, password or app headers.",
+      "invalid_code": "Wrong or expired SMS code.",
+      "cannot_connect": "Cannot connect to api.um.krakow.pl."
+    },
+    "abort": {
+      "already_configured": "This account is already configured.",
+      "reauth_successful": "Re-authenticated."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "waznosc_biletu": {
+        "name": "Ticket valid until"
+      },
+      "dni_do_konca": {
+        "name": "Ticket days left"
+      },
+      "sesja": {
+        "name": "Session since"
+      }
+    }
+  }
+}
