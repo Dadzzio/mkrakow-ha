@@ -31,6 +31,10 @@ z dowolnego zapytania do `api.um.krakow.pl`:
 | Authorization z /mkrakow-sms/login | nagłówek `Authorization` zapytania `POST /mkrakow-sms/login` (zaczyna się od `Basic`) |
 | Authorization z /mkrakow-oauth/token | nagłówek `Authorization` zapytania `POST /mkrakow-oauth/token` albo `/mkrakow-oauth/revoke` (`Basic`) |
 
+Najprościej: zapisz nagranie jako `.har` i uruchom na komputerze
+`python3 narzedzia/stale_z_har.py nagranie.har` – skrypt wypisze tylko te trzy wartości
+(bez PESEL-u, numeru telefonu i tokenów). Możesz podać kilka plików naraz.
+
 Nie wysyłaj nikomu całego nagrania – są w nim PESEL, numer telefonu i tokeny.
 
 ## Encje (urządzenie „mKraków”)
