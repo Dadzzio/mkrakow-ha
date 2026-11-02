@@ -73,5 +73,5 @@ actions:
 ## Ikona
 
 Ikona integracji leży w `custom_components/mkrakow/brand/` (`icon.png` 256×256, `icon@2x.png` 512×512).
-Home Assistant (od 2026.3) pokazuje ją w **Settings → Devices & services**. Lista w HACS może dalej
+Nowsze wersje Home Assistanta pokazują ją w **Settings → Devices & services**. Lista w HACS może dalej
 pokazywać szary placeholder, bo HACS bierze ikony z repozytorium home-assistant/brands.
