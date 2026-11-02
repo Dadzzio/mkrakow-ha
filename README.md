@@ -1,3 +1,5 @@
+<p align="center"><img src="custom_components/mkrakow/brand/icon@2x.png" alt="Ikona mKraków dla HA" width="128"></p>
+
 # mKraków dla Home Assistanta
 
 Nieoficjalna integracja z aplikacją **mKraków**: czyta Twoje bilety okresowe KKM (Karta Krakowiaka)
@@ -67,3 +69,9 @@ actions:
     data:
       timestamp: "{{ as_timestamp(states('sensor.mkrakow_waznosc_biletu')) }}"
 ```
+
+## Ikona
+
+Ikona integracji leży w `custom_components/mkrakow/brand/` (`icon.png` 256×256, `icon@2x.png` 512×512).
+Home Assistant (od 2026.3) pokazuje ją w **Settings → Devices & services**. Lista w HACS może dalej
+pokazywać szary placeholder, bo HACS bierze ikony z repozytorium home-assistant/brands.
