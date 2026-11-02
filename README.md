@@ -22,6 +22,9 @@ a na szynie pojawi się zdarzenie `mkrakow_sesja_wygasla` – możesz z niego zr
 
 ### Stałe aplikacji (3 pola)
 
+W oknie konfiguracji możesz **wgrać plik `.har`** z Proxymana (jeden albo dwa) – integracja sama znajdzie
+te trzy wartości i nie zapisuje pliku. Możesz też wpisać je ręcznie (wpisane ręcznie mają pierwszeństwo).
+
 W repo nie ma kluczy aplikacji mKraków. Skopiuj je z nagrania ruchu aplikacji (np. Proxyman na iPhonie),
 z dowolnego zapytania do `api.um.krakow.pl`:
 

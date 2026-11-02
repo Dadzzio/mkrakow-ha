@@ -3,13 +3,15 @@
     "step": {
       "user": {
         "title": "Logowanie do mKraków",
-        "description": "PESEL i numer telefonu jak w aplikacji mKraków – na ten numer przyjdzie SMS. Trzy ostatnie pola to stałe aplikacji – skopiuj je z nagrania Proxymana (opis w README).",
+        "description": "PESEL i numer telefonu jak w aplikacji mKraków – na ten numer przyjdzie SMS.\n\nStałe aplikacji: wgraj nagranie HAR z Proxymana (najlepiej dwa: logowanie i otwarcie aplikacji po godzinie) – integracja sama je znajdzie. Pola ręczne niżej są opcjonalne. Plik nie jest zapisywany.",
         "data": {
           "pesel": "PESEL",
-          "apikey": "Nagłówek apikey",
-          "auth_sms": "Authorization z /mkrakow-sms/login",
-          "auth_klient": "Authorization z /mkrakow-oauth/token",
-          "telefon": "Numer telefonu"
+          "apikey": "apikey (ręcznie, opcjonalnie)",
+          "auth_sms": "Authorization z /mkrakow-sms/login (ręcznie, opcjonalnie)",
+          "auth_klient": "Authorization z /mkrakow-oauth/token (ręcznie, opcjonalnie)",
+          "telefon": "Numer telefonu",
+          "plik_har": "Nagranie HAR",
+          "plik_har_2": "Drugie nagranie HAR (opcjonalnie)"
         }
       },
       "sms": {
@@ -27,7 +29,9 @@
     "error": {
       "invalid_auth": "Zły PESEL, numer telefonu albo nagłówki aplikacji.",
       "invalid_code": "Zły lub przeterminowany kod SMS.",
-      "cannot_connect": "Brak połączenia z api.um.krakow.pl."
+      "cannot_connect": "Brak połączenia z api.um.krakow.pl.",
+      "brak_stalych": "W nagraniu brakuje: {brakuje}. Dodaj drugie nagranie (logowanie albo otwarcie aplikacji po >1 h) lub wpisz ręcznie.",
+      "zly_har": "To nie jest poprawny plik HAR."
     },
     "abort": {
       "already_configured": "To konto jest już dodane.",

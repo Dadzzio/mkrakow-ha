@@ -3,13 +3,15 @@
     "step": {
       "user": {
         "title": "mKraków login",
-        "description": "PESEL and phone number as in the mKraków app – the SMS is sent to this number. The last three fields are app constants – copy them from a Proxyman capture (see README).",
+        "description": "PESEL and phone number as in the mKraków app – the SMS is sent to this number.\n\nApp constants: upload a HAR capture from Proxyman (ideally two: login and opening the app after an hour) – the integration finds them automatically. Manual fields below are optional. The file is not stored.",
         "data": {
           "pesel": "PESEL",
-          "apikey": "apikey header",
-          "auth_sms": "Authorization from /mkrakow-sms/login",
-          "auth_klient": "Authorization from /mkrakow-oauth/token",
-          "telefon": "Phone number"
+          "apikey": "apikey (manual, optional)",
+          "auth_sms": "Authorization from /mkrakow-sms/login (manual, optional)",
+          "auth_klient": "Authorization from /mkrakow-oauth/token (manual, optional)",
+          "telefon": "Phone number",
+          "plik_har": "HAR capture",
+          "plik_har_2": "Second HAR capture (optional)"
         }
       },
       "sms": {
@@ -27,7 +29,9 @@
     "error": {
       "invalid_auth": "Wrong PESEL, phone number or app headers.",
       "invalid_code": "Wrong or expired SMS code.",
-      "cannot_connect": "Cannot connect to api.um.krakow.pl."
+      "cannot_connect": "Cannot connect to api.um.krakow.pl.",
+      "brak_stalych": "Missing in the capture: {brakuje}. Add a second capture (login or opening the app after >1 h) or enter manually.",
+      "zly_har": "Not a valid HAR file."
     },
     "abort": {
       "already_configured": "This account is already configured.",
