@@ -42,6 +42,14 @@ def naglowek_basic(wartosc: str) -> str:
     return wartosc
 
 
+def telefon_api(telefon: str) -> str:
+    """Aplikacja wysyła numer telefonu w polu password jako 9 cyfr (bez +48)."""
+    cyfry = "".join(z for z in telefon if z.isdigit())
+    if len(cyfry) == 11 and cyfry.startswith("48"):
+        cyfry = cyfry[2:]
+    return cyfry
+
+
 def nowe_app_id() -> str:
     return secrets.token_hex(16)
 
@@ -90,7 +98,7 @@ class MKrakowApi:
 
     # --- logowanie (2FA SMS) ---
 
-    async def zaloguj(self, pesel: str, haslo: str) -> dict[str, str]:
+    async def zaloguj(self, pesel: str, telefon: str) -> dict[str, str]:
         """Krok 1: wysyła SMS. Zwraca stan potrzebny do potwierdzenia kodem."""
         state = secrets.token_hex(16)
         status, dane = await self._zadanie(
@@ -99,7 +107,7 @@ class MKrakowApi:
             self._naglowki(self._auth_sms),
             json={
                 "username": pesel.strip(),
-                "password": haslo,
+                "password": telefon_api(telefon),
                 "state": state,
                 "appId": self._app_id,
             },

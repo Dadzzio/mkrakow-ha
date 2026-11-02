@@ -3,13 +3,13 @@
     "step": {
       "user": {
         "title": "Logowanie do mKraków",
-        "description": "Dane logowania jak w aplikacji mKraków. Hasło służy tylko do wysłania SMS-a i nie jest zapisywane. Trzy ostatnie pola to stałe aplikacji – skopiuj je z nagrania Proxymana (opis w README).",
+        "description": "PESEL i numer telefonu jak w aplikacji mKraków – na ten numer przyjdzie SMS. Trzy ostatnie pola to stałe aplikacji – skopiuj je z nagrania Proxymana (opis w README).",
         "data": {
           "pesel": "PESEL",
-          "haslo": "Hasło",
           "apikey": "Nagłówek apikey",
           "auth_sms": "Authorization z /mkrakow-sms/login",
-          "auth_klient": "Authorization z /mkrakow-oauth/token"
+          "auth_klient": "Authorization z /mkrakow-oauth/token",
+          "telefon": "Numer telefonu"
         }
       },
       "sms": {
@@ -21,14 +21,11 @@
       },
       "reauth_confirm": {
         "title": "Sesja mKraków wygasła",
-        "description": "Podaj hasło – wyślę nowy kod SMS.",
-        "data": {
-          "haslo": "Hasło"
-        }
+        "description": "Kliknij Wyślij – przyjdzie nowy kod SMS."
       }
     },
     "error": {
-      "invalid_auth": "Zły PESEL, hasło albo nagłówki aplikacji.",
+      "invalid_auth": "Zły PESEL, numer telefonu albo nagłówki aplikacji.",
       "invalid_code": "Zły lub przeterminowany kod SMS.",
       "cannot_connect": "Brak połączenia z api.um.krakow.pl."
     },

@@ -7,11 +7,11 @@ i pokazuje, do kiedy jest ważny bilet. Korzysta z tego samego API co aplikacja 
 
 ## Jak działa logowanie
 
-mKraków wymaga kodu SMS przy każdym logowaniu. Integracja loguje się **raz** (PESEL, hasło, kod SMS),
+mKraków wymaga kodu SMS przy każdym logowaniu. Integracja loguje się **raz** (PESEL, numer telefonu, kod SMS),
 a potem co 30 minut odświeża sesję tokenem odświeżania (refresh token), więc kolejne SMS-y nie są potrzebne,
-dopóki serwer nie zerwie sesji. Hasło służy tylko do wysłania SMS-a i nie jest zapisywane.
+dopóki serwer nie zerwie sesji.
 
-Gdy sesja wygaśnie, HA pokaże „Reconfigure” przy integracji (podajesz hasło i nowy kod SMS),
+Gdy sesja wygaśnie, HA pokaże „Reconfigure” przy integracji (klikasz Wyślij i wpisujesz nowy kod SMS),
 a na szynie pojawi się zdarzenie `mkrakow_sesja_wygasla` – możesz z niego zrobić powiadomienie.
 
 ## Instalacja (HACS)
@@ -31,7 +31,7 @@ z dowolnego zapytania do `api.um.krakow.pl`:
 | Authorization z /mkrakow-sms/login | nagłówek `Authorization` zapytania `POST /mkrakow-sms/login` (zaczyna się od `Basic`) |
 | Authorization z /mkrakow-oauth/token | nagłówek `Authorization` zapytania `POST /mkrakow-oauth/token` albo `/mkrakow-oauth/revoke` (`Basic`) |
 
-Nie wysyłaj nikomu całego nagrania – są w nim PESEL, hasło i tokeny.
+Nie wysyłaj nikomu całego nagrania – są w nim PESEL, numer telefonu i tokeny.
 
 ## Encje (urządzenie „mKraków”)
 

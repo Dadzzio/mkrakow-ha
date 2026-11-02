@@ -3,13 +3,13 @@
     "step": {
       "user": {
         "title": "mKraków login",
-        "description": "Same credentials as in the mKraków app. The password is only used to send the SMS and is not stored. The last three fields are app constants – copy them from a Proxyman capture (see README).",
+        "description": "PESEL and phone number as in the mKraków app – the SMS is sent to this number. The last three fields are app constants – copy them from a Proxyman capture (see README).",
         "data": {
           "pesel": "PESEL",
-          "haslo": "Password",
           "apikey": "apikey header",
           "auth_sms": "Authorization from /mkrakow-sms/login",
-          "auth_klient": "Authorization from /mkrakow-oauth/token"
+          "auth_klient": "Authorization from /mkrakow-oauth/token",
+          "telefon": "Phone number"
         }
       },
       "sms": {
@@ -21,14 +21,11 @@
       },
       "reauth_confirm": {
         "title": "mKraków session expired",
-        "description": "Enter your password – a new SMS code will be sent.",
-        "data": {
-          "haslo": "Password"
-        }
+        "description": "Press Submit to receive a new SMS code."
       }
     },
     "error": {
-      "invalid_auth": "Wrong PESEL, password or app headers.",
+      "invalid_auth": "Wrong PESEL, phone number or app headers.",
       "invalid_code": "Wrong or expired SMS code.",
       "cannot_connect": "Cannot connect to api.um.krakow.pl."
     },

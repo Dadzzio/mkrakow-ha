@@ -1,4 +1,4 @@
-"""Konfiguracja w UI: PESEL + hasło → kod SMS → zapis sesji (hasło nie jest zapisywane)."""
+"""Konfiguracja w UI: PESEL + numer telefonu → kod SMS → zapis sesji."""
 
 from __future__ import annotations
 
@@ -20,23 +20,23 @@ from .const import (
     CONF_APP_ID,
     CONF_AUTH_KLIENT,
     CONF_AUTH_SMS,
-    CONF_HASLO,
     CONF_KOD_SMS,
     CONF_PESEL,
+    CONF_TELEFON,
     CONF_TOKENY,
     DOMAIN,
 )
 from .coordinator import utworz_api
 
-HASLO = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
+UKRYTE = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
 
 SCHEMAT_USER = vol.Schema(
     {
         vol.Required(CONF_PESEL): str,
-        vol.Required(CONF_HASLO): HASLO,
-        vol.Required(CONF_APIKEY): HASLO,
-        vol.Required(CONF_AUTH_SMS): HASLO,
-        vol.Required(CONF_AUTH_KLIENT): HASLO,
+        vol.Required(CONF_TELEFON): str,
+        vol.Required(CONF_APIKEY): UKRYTE,
+        vol.Required(CONF_AUTH_SMS): UKRYTE,
+        vol.Required(CONF_AUTH_KLIENT): UKRYTE,
     }
 )
 SCHEMAT_SMS = vol.Schema({vol.Required(CONF_KOD_SMS): str})
@@ -50,10 +50,10 @@ class MKrakowConfigFlow(ConfigFlow, domain=DOMAIN):
         self._stan: dict[str, str] | None = None
         self._api: MKrakowApi | None = None
 
-    async def _wyslij_sms(self, haslo: str) -> dict[str, str]:
+    async def _wyslij_sms(self) -> dict[str, str]:
         self._api = utworz_api(self.hass, self._dane)
         try:
-            self._stan = await self._api.zaloguj(self._dane[CONF_PESEL], haslo)
+            self._stan = await self._api.zaloguj(self._dane[CONF_PESEL], self._dane[CONF_TELEFON])
         except MKrakowBladLogowania:
             return {"base": "invalid_auth"}
         except MKrakowBlad:
@@ -63,9 +63,8 @@ class MKrakowConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         bledy: dict[str, str] = {}
         if user_input is not None:
-            haslo = user_input.pop(CONF_HASLO)
             self._dane = {**user_input, CONF_APP_ID: nowe_app_id()}
-            bledy = await self._wyslij_sms(haslo)
+            bledy = await self._wyslij_sms()
             if not bledy:
                 return await self.async_step_sms()
         return self.async_show_form(step_id="user", data_schema=SCHEMAT_USER, errors=bledy)
@@ -100,11 +99,11 @@ class MKrakowConfigFlow(ConfigFlow, domain=DOMAIN):
     ) -> ConfigFlowResult:
         bledy: dict[str, str] = {}
         if user_input is not None:
-            bledy = await self._wyslij_sms(user_input[CONF_HASLO])
+            bledy = await self._wyslij_sms()
             if not bledy:
                 return await self.async_step_sms()
         return self.async_show_form(
             step_id="reauth_confirm",
-            data_schema=vol.Schema({vol.Required(CONF_HASLO): HASLO}),
+            data_schema=vol.Schema({}),
             errors=bledy,
         )

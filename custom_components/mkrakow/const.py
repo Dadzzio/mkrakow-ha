@@ -5,7 +5,7 @@ DOMAIN = "mkrakow"
 API_URL = "https://api.um.krakow.pl"
 
 CONF_PESEL = "pesel"
-CONF_HASLO = "haslo"
+CONF_TELEFON = "telefon"
 CONF_KOD_SMS = "kod_sms"
 CONF_APIKEY = "apikey"
 CONF_AUTH_SMS = "auth_sms"
