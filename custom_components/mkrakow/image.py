@@ -9,7 +9,7 @@ from typing import Any
 from homeassistant.components.image import ImageEntity, ImageEntityDescription
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers.event import async_call_later, async_track_time_interval
 from homeassistant.util import dt as dt_util
 
 from . import MKrakowConfigEntry, aztec
@@ -19,7 +19,7 @@ from .coordinator import MKrakowKoordynator
 from .entity import encja_urzadzenia
 
 ZAPAS_S = 45  # odśwież kod, gdy do wygaśnięcia zostało mniej
-AUTO_ODSWIEZANIE_MIN = 10  # tyle minut po „Pokaż bilet” kod jest widoczny i sam się odświeża
+AUTO_ODSWIEZANIE_MIN = 2  # tyle minut po „Pokaż bilet” kod jest widoczny i sam się odświeża
 
 
 async def async_setup_entry(
@@ -47,6 +47,7 @@ class KodBiletu(ImageEntity):
         self._auto_do: float = 0
         self._blad: str | None = None
         self._zaslepka: bytes | None = None
+        self._anuluj_schowanie: Any = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -65,15 +66,27 @@ class KodBiletu(ImageEntity):
             if self._wygasa - time.time() < 90:
                 self.hass.async_create_task(self.odswiez())
         elif self._png is not None:
-            # okno minęło – schowaj kod (karta pokaże zaślepkę)
-            self._png = None
-            self._wygasa = 0
-            self._attr_image_last_updated = dt_util.utcnow()
-            self.async_write_ha_state()
+            self._schowaj()
+
+    @callback
+    def _schowaj(self, _teraz: datetime | None = None) -> None:
+        """Okno minęło – schowaj kod (karta pokaże zaślepkę)."""
+        self._anuluj_schowanie = None
+        if self._aktywny():
+            return
+        self._png = None
+        self._wygasa = 0
+        self._attr_image_last_updated = dt_util.utcnow()
+        self.async_write_ha_state()
 
     async def odswiez(self, auto: bool = False) -> None:
         if auto:
             self._auto_do = time.time() + AUTO_ODSWIEZANIE_MIN * 60
+            if self._anuluj_schowanie:
+                self._anuluj_schowanie()
+            self._anuluj_schowanie = async_call_later(
+                self.hass, AUTO_ODSWIEZANIE_MIN * 60 + 1, self._schowaj
+            )
         try:
             tresc, wygasa = await self.k.pobierz_kod()
         except MKrakowBlad as ex:

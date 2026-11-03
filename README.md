@@ -50,12 +50,12 @@ Nie wysyłaj nikomu całego nagrania – są w nim PESEL, numer telefonu i token
 | `sensor.mkrakow_dni_do_konca` | liczba dni do końca | – |
 | `sensor.mkrakow_sesja` | kiedy zalogowano kodem SMS (diagnostyczna) | `ostatnia_aktualizacja` |
 | `image.mkrakow_kod_biletu` | kod Aztec do kontroli biletu (jak w aplikacji, ważny ok. 5 min) | `wazny_do`, `auto_odswiezanie_do`, `blad` |
-| `button.mkrakow_pokaz_bilet` | pobiera świeży kod i odświeża go sam przez 10 min | – |
+| `button.mkrakow_pokaz_bilet` | pobiera świeży kod i odświeża go sam przez 2 min | – |
 
 ### Kod do kontroli biletu
 
 Aplikacja co kilka minut pobiera z `/skk-card/citizen/contract` nową treść kodu Aztec (ważną ok. 5 min)
-i sama go rysuje. Integracja robi to samo, ale **tylko po naciśnięciu Pokaż bilet**: wtedy przez 10 minut kod jest widoczny
+i sama go rysuje. Integracja robi to samo, ale **tylko po naciśnięciu Pokaż bilet**: wtedy przez 2 minuty kod jest widoczny
 i sam się odświeża, potem obrazek wraca do szarej zaślepki. Bez kliknięcia API nie jest odpytywane.
 
 Karta na dashboard (Raw configuration editor / karta Manual):

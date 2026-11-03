@@ -1,4 +1,4 @@
-"""Przycisk „Pokaż bilet”: pobiera świeży kod i odświeża go przez 10 min."""
+"""Przycisk „Pokaż bilet”: pobiera świeży kod i pokazuje go przez 2 min."""
 
 from __future__ import annotations
 
