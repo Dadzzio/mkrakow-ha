@@ -55,8 +55,8 @@ Nie wysyłaj nikomu całego nagrania – są w nim PESEL, numer telefonu i token
 ### Kod do kontroli biletu
 
 Aplikacja co kilka minut pobiera z `/skk-card/citizen/contract` nową treść kodu Aztec (ważną ok. 5 min)
-i sama go rysuje. Integracja robi to samo: kod pobiera się przy otwarciu obrazka (jeśli stary wygasł)
-albo po naciśnięciu **Pokaż bilet** – wtedy przez 10 minut odświeża się sam. Bez oglądania nie odpytuje API.
+i sama go rysuje. Integracja robi to samo, ale **tylko po naciśnięciu Pokaż bilet**: wtedy przez 10 minut kod jest widoczny
+i sam się odświeża, potem obrazek wraca do szarej zaślepki. Bez kliknięcia API nie jest odpytywane.
 
 Karta na dashboard (Raw configuration editor / karta Manual):
 

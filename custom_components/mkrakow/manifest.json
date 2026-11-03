@@ -15,5 +15,5 @@
   "requirements": [
     "aztec_code_generator==0.12"
   ],
-  "version": "0.3.0"
+  "version": "0.3.1"
 }

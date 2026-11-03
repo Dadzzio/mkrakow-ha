@@ -19,7 +19,7 @@ from .coordinator import MKrakowKoordynator
 from .entity import encja_urzadzenia
 
 ZAPAS_S = 45  # odśwież kod, gdy do wygaśnięcia zostało mniej
-AUTO_ODSWIEZANIE_MIN = 10  # po naciśnięciu „Pokaż bilet” kod odświeża się sam przez tyle minut
+AUTO_ODSWIEZANIE_MIN = 10  # tyle minut po „Pokaż bilet” kod jest widoczny i sam się odświeża
 
 
 async def async_setup_entry(
@@ -46,6 +46,7 @@ class KodBiletu(ImageEntity):
         self._wygasa: float = 0
         self._auto_do: float = 0
         self._blad: str | None = None
+        self._zaslepka: bytes | None = None
 
     async def async_added_to_hass(self) -> None:
         await super().async_added_to_hass()
@@ -54,11 +55,21 @@ class KodBiletu(ImageEntity):
         )
         self.k.kod_encja = self
 
+    def _aktywny(self) -> bool:
+        return time.time() < self._auto_do
+
     @callback
     def _co_minute(self, _teraz: datetime) -> None:
-        # w oknie auto-odświeżania wymuś nowy obraz, zanim kod wygaśnie
-        if time.time() < self._auto_do and self._wygasa - time.time() < 90:
-            self.hass.async_create_task(self.odswiez())
+        if self._aktywny():
+            # w oknie po „Pokaż bilet” odśwież kod, zanim wygaśnie
+            if self._wygasa - time.time() < 90:
+                self.hass.async_create_task(self.odswiez())
+        elif self._png is not None:
+            # okno minęło – schowaj kod (karta pokaże zaślepkę)
+            self._png = None
+            self._wygasa = 0
+            self._attr_image_last_updated = dt_util.utcnow()
+            self.async_write_ha_state()
 
     async def odswiez(self, auto: bool = False) -> None:
         if auto:
@@ -76,6 +87,11 @@ class KodBiletu(ImageEntity):
         self.async_write_ha_state()
 
     async def async_image(self) -> bytes | None:
+        # bez naciśnięcia „Pokaż bilet” nie pytamy API – tylko zaślepka
+        if not self._aktywny():
+            if self._zaslepka is None:
+                self._zaslepka = await self.hass.async_add_executor_job(aztec.zaslepka)
+            return self._zaslepka
         if self._png is None or self._wygasa - time.time() < ZAPAS_S:
             await self.odswiez()
         return self._png
@@ -91,5 +107,6 @@ class KodBiletu(ImageEntity):
             ).isoformat()
             if self._auto_do > time.time()
             else None,
+            "aktywny": self._aktywny(),
             "blad": self._blad,
         }
