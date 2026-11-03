@@ -49,6 +49,37 @@ Nie wysyłaj nikomu całego nagrania – są w nim PESEL, numer telefonu i token
 | `sensor.mkrakow_waznosc_biletu` | data i godzina końca ważności (timestamp) | `bilet` (nazwa, od, do, status, cena), `aktualny`, `bilety` |
 | `sensor.mkrakow_dni_do_konca` | liczba dni do końca | – |
 | `sensor.mkrakow_sesja` | kiedy zalogowano kodem SMS (diagnostyczna) | `ostatnia_aktualizacja` |
+| `image.mkrakow_kod_biletu` | kod Aztec do kontroli biletu (jak w aplikacji, ważny ok. 5 min) | `wazny_do`, `auto_odswiezanie_do`, `blad` |
+| `button.mkrakow_pokaz_bilet` | pobiera świeży kod i odświeża go sam przez 10 min | – |
+
+### Kod do kontroli biletu
+
+Aplikacja co kilka minut pobiera z `/skk-card/citizen/contract` nową treść kodu Aztec (ważną ok. 5 min)
+i sama go rysuje. Integracja robi to samo: kod pobiera się przy otwarciu obrazka (jeśli stary wygasł)
+albo po naciśnięciu **Pokaż bilet** – wtedy przez 10 minut odświeża się sam. Bez oglądania nie odpytuje API.
+
+Karta na dashboard (Raw configuration editor / karta Manual):
+
+```yaml
+type: vertical-stack
+cards:
+  - type: picture-entity
+    entity: image.mkrakow_kod_biletu
+    show_name: false
+    show_state: false
+    tap_action:
+      action: more-info
+  - type: button
+    entity: button.mkrakow_pokaz_bilet
+    name: Pokaż bilet
+    tap_action:
+      action: perform-action
+      perform_action: button.press
+      target:
+        entity_id: button.mkrakow_pokaz_bilet
+```
+
+Przy kontroli najpewniejsza jest i tak aplikacja mKraków – kod z HA traktuj jako zapas.
 
 Jeśli masz kupiony kolejny bilet zaczynający się później, ważność to koniec **ostatniego** biletu.
 Bilety zwrócone i przeterminowane są pomijane.

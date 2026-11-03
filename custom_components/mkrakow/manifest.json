@@ -1,13 +1,19 @@
 {
   "domain": "mkrakow",
   "name": "mKraków",
-  "codeowners": ["@Dadzzio"],
+  "codeowners": [
+    "@Dadzzio"
+  ],
   "config_flow": true,
-  "dependencies": ["file_upload"],
+  "dependencies": [
+    "file_upload"
+  ],
   "documentation": "https://github.com/Dadzzio/mkrakow-ha",
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/Dadzzio/mkrakow-ha/issues",
-  "requirements": [],
-  "version": "0.2.0"
+  "requirements": [
+    "aztec_code_generator==0.12"
+  ],
+  "version": "0.3.0"
 }

@@ -186,7 +186,7 @@ class MKrakowApi:
             raise MKrakowBlad(f"Nieoczekiwana odpowiedź userinfo (HTTP {status})")
         return dane
 
-    async def bilety(self, access_token: str) -> list[dict[str, Any]]:
+    def _naglowki_urzadzenia(self, access_token: str) -> dict[str, str]:
         naglowki = self._naglowki(f"Bearer {access_token}")
         naglowki.update(
             {
@@ -196,9 +196,30 @@ class MKrakowApi:
                 "x-device-name": "Home Assistant",
             }
         )
-        status, dane = await self._zadanie("GET", "/skk-tickets/tickets/list", naglowki)
+        return naglowki
+
+    async def bilety(self, access_token: str) -> list[dict[str, Any]]:
+        status, dane = await self._zadanie(
+            "GET", "/skk-tickets/tickets/list", self._naglowki_urzadzenia(access_token)
+        )
         if status == 401:
             raise MKrakowSesjaWygasla("Token nieważny")
         if status != 200 or not isinstance(dane, dict):
             raise MKrakowBlad(f"Nieoczekiwana odpowiedź listy biletów (HTTP {status})")
         return list(dane.get("tickets") or [])
+
+    async def kod_kontrolny(self, access_token: str) -> tuple[str, float]:
+        """Treść kodu Aztec do kontroli biletu i czas wygaśnięcia (epoch s, ok. 5 min)."""
+        status, dane = await self._zadanie(
+            "GET",
+            "/skk-card/citizen/contract",
+            self._naglowki_urzadzenia(access_token),
+            params={"generateAztecCode": "false"},
+        )
+        if status == 401:
+            raise MKrakowSesjaWygasla("Token nieważny")
+        if status != 200 or not isinstance(dane, dict) or not dane.get("contract"):
+            raise MKrakowBlad(f"Nieoczekiwana odpowiedź kodu biletu (HTTP {status})")
+        wygasa = dane.get("expirationDate")
+        wygasa = float(wygasa) / 1000 if wygasa else time.time() + 300
+        return str(dane["contract"]), wygasa

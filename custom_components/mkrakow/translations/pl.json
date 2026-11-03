@@ -49,6 +49,16 @@
       "sesja": {
         "name": "Sesja od"
       }
+    },
+    "image": {
+      "kod_biletu": {
+        "name": "Kod biletu"
+      }
+    },
+    "button": {
+      "pokaz_bilet": {
+        "name": "Pokaż bilet"
+      }
     }
   }
 }

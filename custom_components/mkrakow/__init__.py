@@ -8,7 +8,7 @@ from homeassistant.core import HomeAssistant
 
 from .coordinator import MKrakowKoordynator, magazyn_tokenow, utworz_api
 
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.BUTTON, Platform.IMAGE, Platform.SENSOR]
 
 type MKrakowConfigEntry = ConfigEntry[MKrakowKoordynator]
 

@@ -14,7 +14,6 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
@@ -22,6 +21,7 @@ from homeassistant.util import dt as dt_util
 from . import MKrakowConfigEntry
 from .const import DOMAIN
 from .coordinator import MKrakowKoordynator
+from .entity import encja_urzadzenia
 
 
 def _dni(dane: dict[str, Any]) -> int | None:
@@ -93,13 +93,7 @@ class SensorMKrakow(CoordinatorEntity[MKrakowKoordynator], SensorEntity):
         self._attr_unique_id = f"{wpis.unique_id}_{opis.key}"
         # stałe entity_id niezależnie od języka HA
         self.entity_id = f"sensor.{DOMAIN}_{opis.key}"
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, wpis.unique_id or wpis.entry_id)},
-            name="mKraków",
-            manufacturer="Urząd Miasta Krakowa",
-            model="Karta Krakowiaka – bilety KKM",
-            entry_type=DeviceEntryType.SERVICE,
-        )
+        self._attr_device_info = encja_urzadzenia(k)
 
     @property
     def native_value(self) -> Any:

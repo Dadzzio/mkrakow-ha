@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from datetime import timedelta
 from typing import Any
 
@@ -60,6 +62,9 @@ class MKrakowKoordynator(DataUpdateCoordinator[dict[str, Any]]):
         self._magazyn = magazyn_tokenow(hass, entry.entry_id)
         self._tokeny: dict[str, Any] | None = None
         self.sesja_od: float | None = None
+        # refresh token rotuje – dwa równoległe odświeżenia zabiłyby sesję
+        self._blokada = asyncio.Lock()
+        self.kod_encja: Any = None  # image.mkrakow_kod_biletu (ustawiane przez encję)
 
     async def _wczytaj_tokeny(self) -> dict[str, Any]:
         """Bierze nowsze z: magazynu (rotowane) i config entry (świeże logowanie/reauth)."""
@@ -69,23 +74,46 @@ class MKrakowKoordynator(DataUpdateCoordinator[dict[str, Any]]):
             return z_magazynu or z_wpisu
         return z_wpisu
 
-    async def _async_update_data(self) -> dict[str, Any]:
-        if self._tokeny is None:
-            self._tokeny = await self._wczytaj_tokeny()
-            self.sesja_od = self._tokeny.get("zalogowano") or self._tokeny.get("wydano")
-        if not self._tokeny.get("refresh_token"):
-            raise ConfigEntryAuthFailed("Brak sesji – zaloguj się ponownie kodem SMS")
-
-        try:
+    async def _odswiez_sesje(self) -> str:
+        """Odświeża sesję (pod blokadą) i zwraca aktualny access token."""
+        async with self._blokada:
+            if self._tokeny is None:
+                self._tokeny = await self._wczytaj_tokeny()
+                self.sesja_od = self._tokeny.get("zalogowano") or self._tokeny.get("wydano")
+            if not self._tokeny.get("refresh_token"):
+                raise MKrakowSesjaWygasla("Brak sesji – zaloguj się ponownie kodem SMS")
             nowe = await self.api.odswiez(self._tokeny["refresh_token"])
             nowe["zalogowano"] = self.sesja_od
             self._tokeny = nowe
             await self._magazyn.async_save(nowe)
-            lista = await self.api.bilety(nowe["access_token"])
+            return nowe["access_token"]
+
+    async def _token(self) -> str:
+        """Ważny access token – bez odświeżania, jeśli zostało ponad 2 min."""
+        t = self._tokeny or {}
+        if t.get("access_token") and t.get("wygasa", 0) - time.time() > 120:
+            return t["access_token"]
+        return await self._odswiez_sesje()
+
+    def _sesja_wygasla(self) -> None:
+        self.hass.bus.async_fire(ZDARZENIE_SESJA_WYGASLA, {"entry_id": self.config_entry.entry_id})
+
+    async def pobierz_kod(self) -> tuple[str, float]:
+        """Kod Aztec do kontroli biletu (ważny ok. 5 min)."""
+        try:
+            token = await self._token()
+            return await self.api.kod_kontrolny(token)
+        except MKrakowSesjaWygasla:
+            self._sesja_wygasla()
+            self.config_entry.async_start_reauth(self.hass)
+            raise
+
+    async def _async_update_data(self) -> dict[str, Any]:
+        try:
+            token = await self._odswiez_sesje()
+            lista = await self.api.bilety(token)
         except MKrakowSesjaWygasla as ex:
-            self.hass.bus.async_fire(
-                ZDARZENIE_SESJA_WYGASLA, {"entry_id": self.config_entry.entry_id}
-            )
+            self._sesja_wygasla()
             raise ConfigEntryAuthFailed(str(ex)) from ex
         except MKrakowBlad as ex:
             raise UpdateFailed(str(ex)) from ex

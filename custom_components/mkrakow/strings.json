@@ -49,6 +49,16 @@
       "sesja": {
         "name": "Session since"
       }
+    },
+    "image": {
+      "kod_biletu": {
+        "name": "Ticket code"
+      }
+    },
+    "button": {
+      "pokaz_bilet": {
+        "name": "Show ticket"
+      }
     }
   }
 }
