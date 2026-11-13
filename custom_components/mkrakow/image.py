@@ -47,6 +47,7 @@ class KodBiletu(ImageEntity):
         self._auto_do: float = 0
         self._blad: str | None = None
         self._zaslepka: bytes | None = None
+        self._rodzaj: str | None = None
         self._anuluj_schowanie: Any = None
 
     async def async_added_to_hass(self) -> None:
@@ -93,6 +94,7 @@ class KodBiletu(ImageEntity):
             self._blad = str(ex)
             self.async_write_ha_state()
             return
+        self._rodzaj = aztec.rodzaj(tresc)
         self._png = await self.hass.async_add_executor_job(aztec.png, tresc)
         self._wygasa = wygasa
         self._blad = None
@@ -121,5 +123,6 @@ class KodBiletu(ImageEntity):
             if self._auto_do > time.time()
             else None,
             "aktywny": self._aktywny(),
+            "format_kodu": self._rodzaj,
             "blad": self._blad,
         }

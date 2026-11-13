@@ -7,8 +7,29 @@ import io
 from aztec_code_generator import AztecCode
 
 
+def rodzaj(tresc: str) -> str:
+    """Opis formatu treści bez ujawniania jej (do diagnostyki)."""
+    t = tresc.strip()
+    if t.startswith("data:image"):
+        return "data-uri"
+    if t.startswith("iVBOR"):
+        return "png-base64"
+    if t.startswith("PHN2Zy") or t.startswith("<svg"):
+        return "svg"
+    if all(c in "0123456789abcdefABCDEF" for c in t):
+        return f"hex-{len(t)}"
+    return f"tekst-{len(t)}"
+
+
 def png(tresc: str, modul: int = 8, ramka: int = 4) -> bytes:
-    kod = AztecCode(tresc)
+    import base64
+
+    t = tresc.strip()
+    if t.startswith("data:image/png;base64,"):
+        return base64.b64decode(t.split(",", 1)[1])
+    if t.startswith("iVBOR"):
+        return base64.b64decode(t)
+    kod = AztecCode(t)
     obraz = kod.image(module_size=modul, border=ramka)
     bufor = io.BytesIO()
     obraz.save(bufor, format="PNG")

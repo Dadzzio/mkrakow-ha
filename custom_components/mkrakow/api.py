@@ -209,12 +209,16 @@ class MKrakowApi:
         return list(dane.get("tickets") or [])
 
     async def kod_kontrolny(self, access_token: str) -> tuple[str, float]:
-        """Treść kodu Aztec do kontroli biletu i czas wygaśnięcia (epoch s, ok. 5 min)."""
+        """Kod do kontroli biletu wygenerowany przez serwer i czas wygaśnięcia (epoch s).
+
+        Aplikacja przy generateAztecCode=false sama przetwarza contract (inny format niż
+        to, co skanuje kontroler), dlatego prosimy serwer o gotowy kod.
+        """
         status, dane = await self._zadanie(
             "GET",
             "/skk-card/citizen/contract",
             self._naglowki_urzadzenia(access_token),
-            params={"generateAztecCode": "false"},
+            params={"generateAztecCode": "true"},
         )
         if status == 401:
             raise MKrakowSesjaWygasla("Token nieważny")
