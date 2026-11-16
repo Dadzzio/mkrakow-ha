@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import time
 from datetime import timedelta
 from typing import Any
 
@@ -64,7 +63,6 @@ class MKrakowKoordynator(DataUpdateCoordinator[dict[str, Any]]):
         self.sesja_od: float | None = None
         # refresh token rotuje – dwa równoległe odświeżenia zabiłyby sesję
         self._blokada = asyncio.Lock()
-        self.kod_encja: Any = None  # image.mkrakow_kod_biletu (ustawiane przez encję)
 
     async def _wczytaj_tokeny(self) -> dict[str, Any]:
         """Bierze nowsze z: magazynu (rotowane) i config entry (świeże logowanie/reauth)."""
@@ -88,25 +86,8 @@ class MKrakowKoordynator(DataUpdateCoordinator[dict[str, Any]]):
             await self._magazyn.async_save(nowe)
             return nowe["access_token"]
 
-    async def _token(self) -> str:
-        """Ważny access token – bez odświeżania, jeśli zostało ponad 2 min."""
-        t = self._tokeny or {}
-        if t.get("access_token") and t.get("wygasa", 0) - time.time() > 120:
-            return t["access_token"]
-        return await self._odswiez_sesje()
-
     def _sesja_wygasla(self) -> None:
         self.hass.bus.async_fire(ZDARZENIE_SESJA_WYGASLA, {"entry_id": self.config_entry.entry_id})
-
-    async def pobierz_kod(self) -> tuple[str, float]:
-        """Kod Aztec do kontroli biletu (ważny ok. 5 min)."""
-        try:
-            token = await self._token()
-            return await self.api.kod_kontrolny(token)
-        except MKrakowSesjaWygasla:
-            self._sesja_wygasla()
-            self.config_entry.async_start_reauth(self.hass)
-            raise
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:

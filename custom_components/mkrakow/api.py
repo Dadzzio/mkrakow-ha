@@ -207,23 +207,3 @@ class MKrakowApi:
         if status != 200 or not isinstance(dane, dict):
             raise MKrakowBlad(f"Nieoczekiwana odpowiedź listy biletów (HTTP {status})")
         return list(dane.get("tickets") or [])
-
-    async def kod_kontrolny(self, access_token: str) -> tuple[str, float]:
-        """Kod do kontroli biletu wygenerowany przez serwer i czas wygaśnięcia (epoch s).
-
-        Aplikacja przy generateAztecCode=false sama przetwarza contract (inny format niż
-        to, co skanuje kontroler), dlatego prosimy serwer o gotowy kod.
-        """
-        status, dane = await self._zadanie(
-            "GET",
-            "/skk-card/citizen/contract",
-            self._naglowki_urzadzenia(access_token),
-            params={"generateAztecCode": "true"},
-        )
-        if status == 401:
-            raise MKrakowSesjaWygasla("Token nieważny")
-        if status != 200 or not isinstance(dane, dict) or not dane.get("contract"):
-            raise MKrakowBlad(f"Nieoczekiwana odpowiedź kodu biletu (HTTP {status})")
-        wygasa = dane.get("expirationDate")
-        wygasa = float(wygasa) / 1000 if wygasa else time.time() + 300
-        return str(dane["contract"]), wygasa
